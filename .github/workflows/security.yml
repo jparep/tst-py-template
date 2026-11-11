@@ -1,0 +1,38 @@
+# ==============================================================================
+# FILE: .github/workflows/security.yml
+# Thin caller for the shared security checks (DPHHS-DMO/shared-workflows).
+# Trigger, permissions and concurrency live here. The checks live in
+# shared-workflows. Do not copy them into this repo.
+#
+# Keep the job id `security`: the check is named
+#   security / Secret detection
+# There is no dbt package check here because this is not a dbt project:
+# dbt_project_dir is left unset, which skips that job.
+# ==============================================================================
+
+name: Security
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 9 * * 1'      # weekly full-history scan, Monday 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  security:
+    uses: DPHHS-DMO/shared-workflows/.github/workflows/security.yml@v1
+    permissions:
+      contents: read
+    # No `with:` needed. Optional overrides (defaults are set in shared-workflows):
+    # with:
+    #   secret_scan_results: "verified,unknown"
