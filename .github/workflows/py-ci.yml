@@ -1,0 +1,45 @@
+# ==============================================================================
+# FILE: .github/workflows/py.yml
+# Thin caller for the shared Python CI (DPHHS-DMO/shared-workflows).
+# Trigger, permissions and concurrency live here. The checks live in
+# shared-workflows. Do not copy them into this repo.
+#
+# Keep the job id `py`: the checks are named
+#   py / Lint and format
+#   py / Tests (Python 3.12)
+#   py / Type check
+#   py / Notebook outputs
+#   py / Python CI result
+# Branch rules should require only `py / Python CI result`.
+# ==============================================================================
+
+name: Python CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: py-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  py:
+    uses: DPHHS-DMO/shared-workflows/.github/workflows/py.yml@v1
+    permissions:
+      contents: read
+    with:
+      python_versions: '["3.12"]'
+      # Optional overrides (defaults are set in shared-workflows):
+      # working_directory: "."
+      # sync_args: "--all-extras"
+      # pytest_args: "-m 'not slow'"
+      # allow_no_tests: true      # only until the project has its first test
+      # run_type_check: true      # needs mypy in the dev dependency group
+      # check_notebooks: false
